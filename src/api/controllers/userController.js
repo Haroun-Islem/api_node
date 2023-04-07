@@ -1,55 +1,54 @@
 const User = require("../models/userModel");
-const jwt = require("jsonwebtoken");
+const jsonwebtoken = require("jsonwebtoken");
 
-exports.userRegister = (req, res) => {
-  let newUser = new User(req.body);
-
-  newUser.save((error, user) => {
-    if (error) {
-      res.status(500);
-      console.log(error);
-      res.json({ message: "Erreur serveur." });
+exports.register = (req, res) => {
+  const user = new User(req.body);
+  user.save((err, user) => {
+    if (err) {
+      res.status(401);
+      console.log(err);
+      res.json({ message: err });
     } else {
       res.status(201);
-      res.json({ message: `Utilisateur crée :${user.email}` });
+      res.json({ message: `user created : ${user.email} ` });
     }
   });
 };
 
-exports.userLogin = (req, res) => {
-  // Find user
-
-  User.findOne({ email: req.body.email }, (error, user) => {
-    if (error || user == null) {
-      res.status(500);
-      console.log(error);
-      res.json({ message: "Utilisateur inconnu" });
+exports.login = (req, res) => {
+  User.findOne({ email: req.body.email }, (err, user) => {
+    if (err || user === null) {
+      res.status(401);
+      console.log(err);
+      res.json({ message: err });
     } else {
-      // User found
-      if (user.email == req.body.email && user.password == req.body.password) {
-        let userData = {
-          id: user._kd,
+      if (
+        user.email === req.body.email &&
+        user.password === req.body.password
+      ) {
+        let userDate = {
           email: user.email,
+          id: user._id,
           role: "admin",
         };
-        jwt.sign(
-          userData,
-          process.env.JWT_KEY,
-          { expireIN: "30DAYS" },
-          (error, token) => {
-            if (error) {
-              res.status(500), console.log(error);
-              res.json({ message: "impossilbe de générer le token" });
+        jsonwebtoken.sign(
+          userDate,
+          process.env.JWT_TOKEN,
+          { expiresIn: "30days" },
+          (err, token) => {
+            if (err) {
+              res.status(401);
+              console.log(err);
+              res.json({ message: err });
             } else {
               res.status(200);
-              res.json({ token });
+              res.json({ message: "login success", token: token });
             }
           }
         );
       } else {
         res.status(401);
-        console.log(error);
-        res.json({ message: "EMail ou Mot de passe incorrect" });
+        res.json({ message: "login failed" });
       }
     }
   });

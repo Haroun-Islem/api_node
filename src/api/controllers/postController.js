@@ -1,61 +1,59 @@
-const Post = require("../models/postModel");
-const textApiProvider = require("../providers/textApiProvider");
-exports.listAllPosts = (req, res) => {
-  Post.find({}, (error, posts) => {
-    if (error) {
-      res.status(500);
-      console.log(error);
-      res.json({ message: "Erreur serveur." });
-    } else {
-      res.status(200);
-      res.json(posts);
-    }
-  });
-};
-exports.createAPost = (req, res) => {
-  let newPost = new Post(req.body);
+const postmodel = require("../models/postModel");
 
-  if (!newPost.content) {
-    let randomText = textApiProvider.getRandomText();
-    newPost.content = randomText;
+const apijson = require("../providers/testApiProvider");
 
-    randomText.then((result) => {
-      newPost.content = result.body;
-      newPost.save((error, post) => {
-        if (error) {
-          res.status(401);
-          console.log(error);
-          res.json({ message: "Reqûete invalide." });
-        } else {
-          res.status(201);
-          res.json(post);
-        }
-      });
-    });
-  }
-};
-exports.getAPost = (req, res) => {
-  Post.findById(req.params.post_id, (error, post) => {
-    if (error) {
-      res.status(500);
-      console.log(error);
-      res.json({ message: "Erreur serveur." });
+exports.getPosts = (req, res) => {
+  postmodel.find({}, (err, post) => {
+    if (err) {
+      res.status(401);
+      console.log(err);
+      res.json({ message: err });
     } else {
       res.status(200);
       res.json(post);
     }
   });
 };
-exports.updateAPost = (req, res) => {
-  Post.findByIdAndUpdate(
-    req.params.post_id,
-    req.body,
-    { new: true },
-    (error, post) => {
-      if (error) {
-        res.status(500);
-        console.log(error);
-        res.json({ message: "Erreur serveur." });
+
+exports.createPost = (req, res) => {
+  const post = new postmodel(req.body);
+  if (!post.des) {
+    let content = apijson.getRandomText();
+    content.then((data) => {
+      post.des = data.body;
+      post.save((err, post) => {
+        if (err) {
+          res.status(401);
+          console.log(err);
+          res.json({ message: err });
+        } else {
+          res.status(201);
+          res.json(post);
+        }
+      });
+    });
+  } else {
+    post.save((err, post) => {
+      if (err) {
+        res.status(401);
+        console.log(err);
+        res.json({ message: err });
+      } else {
+        res.status(201);
+        res.json(post);
+      }
+    });
+  }
+};
+exports.updatePosts = (req, res) => {
+  postmodel.findByIdAndUpdate(
+    req.params.id,
+    { $set: req.body },
+    (err, post) => {
+      if (err) {
+        res.status(401);
+        console.log(err);
+        res.json({ message: err });
       } else {
         res.status(200);
         res.json(post);
@@ -63,15 +61,29 @@ exports.updateAPost = (req, res) => {
     }
   );
 };
-exports.deleteAPost = (req, res) => {
-  Post.findByIdAndRemove(req.params.post_id, (error) => {
-    if (error) {
-      res.status(500);
-      console.log(error);
-      res.json({ message: "Erreur serveur." });
+
+exports.deletePosts = (req, res) => {
+  postmodel.deleteMany({}, (err, post) => {
+    if (err) {
+      res.status(401);
+      console.log(err);
+      res.json({ message: err });
     } else {
       res.status(200);
-      res.json({ message: "Article supprimé" });
+      res.json(post);
+    }
+  });
+};
+
+exports.getPost = (req, res) => {
+  postmodel.findById(req.params.id, (err, post) => {
+    if (err) {
+      res.status(401);
+      console.log(err);
+      res.json({ message: err });
+    } else {
+      res.status(200);
+      res.json(post);
     }
   });
 };

@@ -1,33 +1,45 @@
-const Post = require("../models/postModel");
-const Comment = require("../models/commentModel");
-exports.listAllComments = (req, res) => {
-  Comment.find({ post_id: req.params.post_id }, (error, comments) => {
-    if (error) {
-      res.status(500);
-      console.log(error);
-      res.json({ message: "Erreur serveur." });
+const commentmodel = require("../models/commentModel");
+const postmodel = require("../models/postModel");
+
+exports.getAllcomments = (req, res) => {
+  commentmodel.find({}, (err, comment) => {
+    if (err) {
+      res.status(401);
+      console.log(err);
+      res.json({ message: err });
     } else {
       res.status(200);
-      res.json(comments);
+      res.json(comment);
     }
   });
 };
-exports.createAComment = (req, res) => {
-  Post.findById(req.params.post_id, (error, posts) => {
-    if (error) {
+
+exports.getcomments = (req, res) => {
+  commentmodel.find({ post: req.params.id }, (err, comment) => {
+    if (err) {
       res.status(401);
-      console.log(error);
-      res.json({ message: "Requete invalide" });
+      console.log(err);
+      res.json({ message: err });
     } else {
-      let newComment = new Comment({
-        ...req.body,
-        post_id: req.params.post_id,
-      });
-      newComment.save((error, comment) => {
-        if (error) {
+      res.status(200);
+      res.json(comment);
+    }
+  });
+};
+
+exports.createcomment = (req, res) => {
+  postmodel.findById(req.params.id, (err, post) => {
+    if (err) {
+      res.status(401);
+      console.log(err);
+      res.json({ message: err });
+    } else {
+      const comment = new commentmodel({ post: req.params.id, ...req.body });
+      comment.save((err, comment) => {
+        if (err) {
           res.status(401);
-          console.log(error);
-          res.json({ message: "Reqûete invalide." });
+          console.log(err);
+          res.json({ message: err });
         } else {
           res.status(201);
           res.json(comment);
@@ -36,28 +48,15 @@ exports.createAComment = (req, res) => {
     }
   });
 };
-exports.getAComment = (req, res) => {
-  Comment.findById(req.params.comment_id, (error, comment) => {
-    if (error) {
-      res.status(500);
-      console.log(error);
-      res.json({ message: "Erreur serveur." });
-    } else {
-      res.status(200);
-      res.json(comment);
-    }
-  });
-};
-exports.updateAComment = (req, res) => {
-  Comment.findByIdAndUpdate(
-    req.params.comment_id,
-    req.body,
-    { new: true },
-    (error, comment) => {
-      if (error) {
-        res.status(500);
-        console.log(error);
-        res.json({ message: "Erreur serveur." });
+exports.updatecomments = (req, res) => {
+  commentmodel.findByIdAndUpdate(
+    req.params.id,
+    { $set: req.body },
+    (err, comment) => {
+      if (err) {
+        res.status(401);
+        console.log(err);
+        res.json({ message: err });
       } else {
         res.status(200);
         res.json(comment);
@@ -65,15 +64,29 @@ exports.updateAComment = (req, res) => {
     }
   );
 };
-exports.deleteAComment = (req, res) => {
-  Comment.findByIdAndRemove(req.params.comment_id, (error) => {
-    if (error) {
-      res.status(500);
-      console.log(error);
-      res.json({ message: "Erreur serveur." });
+
+exports.deletecomments = (req, res) => {
+  commentmodel.deleteMany({}, (err, comment) => {
+    if (err) {
+      res.status(401);
+      console.log(err);
+      res.json({ message: err });
     } else {
       res.status(200);
-      res.json({ message: "Commentaires supprimé" });
+      res.json(comment);
+    }
+  });
+};
+
+exports.getcomment = (req, res) => {
+  commentmodel.findById(req.params.id, (err, comment) => {
+    if (err) {
+      res.status(401);
+      console.log(err);
+      res.json({ message: err });
+    } else {
+      res.status(200);
+      res.json(comment);
     }
   });
 };
